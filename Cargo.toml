@@ -1,0 +1,8 @@
+[package]
+
+name = "rust-cat"
+version = "0.0.1"
+authors = ["Luke Rodgers <lukeasrodgers@gmail.com>"]
+
+[dependencies]
+getopts = "0.1.4"
