@@ -27,11 +27,23 @@ fn cat_files(v: &Vec<String>, options: &getopts::Matches) {
     let mut linenum = 1u32;
     for filename in v.iter() {
         let path = Path::new(filename);
-        let mut file = BufferedReader::new(File::open(&path));
-        for line in file.lines() {
-            let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
-            printempty = a;
-            linenum = b;
+
+        if options.opt_present("v") || options.opt_present("t") {
+            let mut file = BufferedReader::new(File::open(&path));
+            loop {
+                match file.read_byte() {
+                    Ok(b) => { print_byte(b, options) },
+                    Err(f) => { break; }
+                }
+            }
+        }
+        else {
+            let mut file = BufferedReader::new(File::open(&path));
+            for line in file.lines() {
+                let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
+                printempty = a;
+                linenum = b;
+            }
         }
     }
 }
@@ -103,6 +115,20 @@ fn is_empty(line: &String) -> bool {
     }
 }
 
+fn print_byte(b: u8, options: &getopts::Matches) {
+    if b > 31 || b == 10 || b == 9 {
+        if options.opt_present("t") && b == 9 {
+            print!("^{}", (b + 64) as char);
+        }
+        else {
+            print!("{}", b as char);
+        }
+    }
+    else {
+        print!("^{}", (b + 64) as char);
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::is_empty;
@@ -127,6 +153,12 @@ mod test {
     #[test]
     fn assert_is_empty_char() {
         let s = "d".to_string();
+        assert!(!is_empty(&s));
+    }
+
+    #[test]
+    fn assert_is_empty_ctrl_char() {
+        let s = "".to_string();
         assert!(!is_empty(&s));
     }
 }
