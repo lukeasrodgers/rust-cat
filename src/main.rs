@@ -14,6 +14,8 @@ fn main() {
     let opts = &[
         optflag("b", "number non-blank lines", "Number the non-blank output lines, starting at 1."),
         optflag("s", "squeeze", "Squeeze multiple adjacent empty lines, causing the output to be single spaced."),
+        optflag("b", "number non-blank", "Number the non-blank output lines, starting at 1."),
+        optflag("n", "number output", "Number the output lines, starting at 1."),
         optflag("h", "help", "print this help menu")
     ];
     let matches = match getopts(args.tail(), opts) {

@@ -24,42 +24,69 @@ pub fn cat(v: &Vec<String>, options: &getopts::Matches) {
 
 fn cat_files(v: &Vec<String>, options: &getopts::Matches) {
     let mut printempty: bool = false;
+    let mut linenum = 1u32;
     for filename in v.iter() {
         let path = Path::new(filename);
         let mut file = BufferedReader::new(File::open(&path));
         for line in file.lines() {
-            printempty = handle_line(line, &mut printempty, options);
+            let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
+            printempty = a;
+            linenum = b;
         }
     }
 }
 
 fn cat_stdin(options: &getopts::Matches) {
     let mut printempty: bool = false;
+    let mut linenum = 1u32;
     for line in io::stdin().lock().lines() {
-        printempty = handle_line(line, &mut printempty, options);
+        let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
+        printempty = a;
+        linenum = b;
     }
 }
 
 fn handle_line<'a>(
     line: IoResult<String>,
     printempty: &'a mut bool,
-    options: &getopts::Matches) -> bool {
+    linenum: &'a mut u32,
+    options: &getopts::Matches) -> (bool, u32) {
     let linestr = line.unwrap();
     if options.opt_present("s") {
         if !is_empty(&linestr) {
             if *printempty == true {
                 println!("");
             }
-            print!("{}", linestr);
+            *linenum = *print_string(&linestr, linenum, options);
         }
         else {
             *printempty = true;
         }
     }
     else {
-        print!("{}", linestr);
+        *linenum = *print_string(&linestr, linenum, options);
     }
-    *printempty
+    (*printempty, *linenum)
+}
+
+fn print_string<'a>(s: &String, linenum: &'a mut u32, options: &getopts::Matches) -> &'a mut u32 {
+    if options.opt_present("b") {
+        if !is_empty(s) {
+            print!("     {}  {}", linenum, s);
+            *linenum = *linenum + 1;
+        }
+        else {
+            print!("{}", s);
+        }
+    }
+    else if options.opt_present("n") {
+        print!("     {}  {}", linenum, s);
+        *linenum = *linenum + 1;
+    }
+    else {
+        print!("{}", s);
+    }
+    linenum
 }
 
 fn is_empty(line: &String) -> bool {
