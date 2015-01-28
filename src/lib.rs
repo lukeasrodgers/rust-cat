@@ -6,6 +6,7 @@ use std::io;
 use std::io::{IoResult, IoError};
 use std::io::BufferedReader;
 use std::io::File;
+use std::io::stdio;
 
 pub fn print_usage(program: &str, opts: &[OptGroup]) {
     let brief = format!("Usage: {} [options]", program);
@@ -13,6 +14,10 @@ pub fn print_usage(program: &str, opts: &[OptGroup]) {
 }
 
 pub fn cat(v: &Vec<String>, options: &getopts::Matches) {
+    if options.opt_present("u") {
+        let writer = Box::new(stdio::stdout_raw());
+        stdio::set_stdout(writer);
+    }
     if v.is_empty() {
         cat_stdin(options);
     }

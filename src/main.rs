@@ -18,6 +18,7 @@ fn main() {
         optflag("n", "number output", "Number the output lines, starting at 1."),
         optflag("v", "display non-printing characters", "Display non-printing characters so they are visible.  Control characters print as `^X' for control-X; the delete character (octal 0177) prints as `^?'.  Non-ASCII characters (with the high bit set) are printed as `M-' (for meta) followed by the character for the low 7 bits."),
         optflag("t", "display non-printing characters and tabs", "Display non-printing characters (see the -v option), and display tab characters as `^I'."),
+        optflag("u", "disable buffering", "Disable output buffering."),
         optflag("h", "help", "print this help menu")
     ];
     let matches = match getopts(args.tail(), opts) {
