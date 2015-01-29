@@ -32,11 +32,18 @@ fn cat_files(v: &Vec<String>, options: &getopts::Matches) {
     let mut linenum = 1u32;
     for filename in v.iter() {
         let path = Path::new(filename);
-        let mut file = BufferedReader::new(File::open(&path));
-        for line in file.lines() {
-            let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
-            printempty = a;
-            linenum = b;
+        match File::open(&path) {
+            Ok(fh) => {
+                let mut file = BufferedReader::new(fh);
+                for line in file.lines() {
+                    let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
+                    printempty = a;
+                    linenum = b;
+                }
+            },
+            Err(f) => {
+                println!("{}", f);
+            }
         }
     }
 }
