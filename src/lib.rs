@@ -96,13 +96,13 @@ fn print_string<'a>(s: &String, linenum: &'a mut u32, options: &getopts::Matches
 
 fn print_numbered<'a>(s: &String, linenum: &'a mut u32, options: &getopts::Matches) {
     if options.opt_present("v") || options.opt_present("t") {
-        print!("      {} ", linenum);
+        print!("     {}\t", linenum);
         for b in s.as_bytes().iter() {
             print_byte(b, options);
         }
     }
     else {
-        print!("     {}  {}", linenum, s);
+        print!("     {}\t{}", linenum, s);
     }
 }
 
