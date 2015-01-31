@@ -2,11 +2,11 @@ extern crate getopts;
 use getopts::{optopt,optflag,getopts,OptGroup,usage};
 use std::os;
 
-use std::io;
-use std::io::{IoResult, IoError};
-use std::io::BufferedReader;
-use std::io::File;
-use std::io::stdio;
+use std::old_io;
+use std::old_io::{IoResult, IoError};
+use std::old_io::BufferedReader;
+use std::old_io::File;
+use std::old_io::stdio;
 
 pub fn print_usage(program: &str, opts: &[OptGroup]) {
     let brief = format!("Usage: {} [options]", program);
@@ -51,7 +51,7 @@ fn cat_files(v: &Vec<String>, options: &getopts::Matches) {
 fn cat_stdin(options: &getopts::Matches) {
     let mut printempty: bool = false;
     let mut linenum = 1u32;
-    for line in io::stdin().lock().lines() {
+    for line in old_io::stdin().lock().lines() {
         let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
         printempty = a;
         linenum = b;
