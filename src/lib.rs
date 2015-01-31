@@ -28,18 +28,12 @@ pub fn cat(v: &Vec<String>, options: &getopts::Matches) {
 }
 
 fn cat_files(v: &Vec<String>, options: &getopts::Matches) {
-    let mut printempty: bool = false;
-    let mut linenum = 1u32;
     for filename in v.iter() {
         let path = Path::new(filename);
         match File::open(&path) {
             Ok(fh) => {
                 let mut file = BufferedReader::new(fh);
-                for line in file.lines() {
-                    let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
-                    printempty = a;
-                    linenum = b;
-                }
+                cat_file(file, options);
             },
             Err(f) => {
                 println!("{}", f);
@@ -52,6 +46,16 @@ fn cat_stdin(options: &getopts::Matches) {
     let mut printempty: bool = false;
     let mut linenum = 1u32;
     for line in old_io::stdin().lock().lines() {
+        let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
+        printempty = a;
+        linenum = b;
+    }
+}
+
+fn cat_file(mut file: old_io::BufferedReader<std::old_io::fs::File>, options: &getopts::Matches) {
+    let mut printempty: bool = false;
+    let mut linenum = 1u32;
+    for line in file.lines() {
         let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
         printempty = a;
         linenum = b;
