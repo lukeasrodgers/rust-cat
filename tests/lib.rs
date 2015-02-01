@@ -44,6 +44,22 @@ fn test_output_multi_files_print_all_chars() {
 }
 
 #[test]
+fn test_output_files_print_all_chars() {
+    let po = match Command::new(PROGNAME)
+                                .arg("tests/fixtures/alpha.txt")
+                                .arg("-vt")
+                                .arg("-n").output() {
+
+        Ok(p) => p,
+        Err(err) => panic!("{}", err),
+    };
+
+    let out = str::from_utf8(po.output.as_slice()).unwrap();
+    assert_eq!(out,
+               "     1\tabcde\n     2\tfghij\n     3\tklmno\n     4\tpqrst\n     5\tuvwxyz\n");
+}
+
+#[test]
 fn test_stdin_squeeze() {
     let mut process= Command::new(PROGNAME).arg("-vt").spawn().unwrap();
 

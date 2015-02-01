@@ -46,7 +46,7 @@ fn cat_stdin(options: &getopts::Matches) {
     let mut printempty: bool = false;
     let mut linenum = 1u32;
     for line in old_io::stdin().lock().lines() {
-        let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
+        let (a, b) = handle_line(line.unwrap(), &mut printempty, &mut linenum, options);
         printempty = a;
         linenum = b;
     }
@@ -55,19 +55,38 @@ fn cat_stdin(options: &getopts::Matches) {
 fn cat_file(mut file: old_io::BufferedReader<std::old_io::fs::File>, options: &getopts::Matches) {
     let mut printempty: bool = false;
     let mut linenum = 1u32;
-    for line in file.lines() {
-        let (a, b) = handle_line(line, &mut printempty, &mut linenum, options);
-        printempty = a;
-        linenum = b;
+    let mut read_buf = [0, 4096];
+    let mut out_buf: Vec<u8> = vec![];
+    loop {
+        match file.read(&mut read_buf) {
+            Ok(n) => {
+                for c in read_buf[..n].iter() {
+                    out_buf.push(*c);
+                    // if end of line
+                    // print_byte(c, options);
+                    if *c == 10u8 {
+                        let s = String::from_utf8(out_buf.clone()).unwrap();
+                        let (a, b) = handle_line(s, &mut printempty, &mut linenum, options);
+                        printempty = a;
+                        linenum = b;
+                        out_buf.clear();
+                    }
+                    // print_byte(c, options);
+                }
+            },
+            Err(f) => { break }
+        }
     }
+    // leftover
+    let s = String::from_utf8(out_buf.clone()).unwrap();
+    handle_line(s, &mut printempty, &mut linenum, options);
 }
 
 fn handle_line<'a>(
-    line: IoResult<String>,
+    linestr: String,
     printempty: &'a mut bool,
     linenum: &'a mut u32,
     options: &getopts::Matches) -> (bool, u32) {
-    let linestr = line.unwrap();
     if options.opt_present("s") {
         if !is_empty(&linestr) {
             if *printempty == true {
@@ -157,7 +176,7 @@ fn print_byte(b: &u8, options: &getopts::Matches) {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::is_empty;
 
     #[test]
