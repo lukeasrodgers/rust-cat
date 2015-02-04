@@ -268,7 +268,13 @@ fn print_byte(b: &u8, options: &getopts::Matches) {
                     print!("M-^?");
                 }
                 else {
-                    print!("M-{}", (*b - 128) as char);
+                    let x = *b - 128;
+                    if x < 32 {
+                        print!("M-^{}", (x + 64) as char);
+                    }
+                    else {
+                        print!("M-{}", (*b - 128) as char);
+                    }
                 }
             }
         }
