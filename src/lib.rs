@@ -76,8 +76,6 @@ fn cat_file<'a>(
             },
             Err(f) => {
                 let mut o = 0u32;
-                // print_buf(&out_buf, &mut o, options);
-
                 if out_buf.len() > 0 {
                     handle_buf(&out_buf, &mut printempty, linenum, options);
                 }
@@ -118,7 +116,13 @@ fn handle_buf<'a>(
     if options.opt_present("s") {
         if !is_empty_out_buf(out_buf) {
             if *printempty == true {
-                println!("");
+                if options.opt_present("n") {
+                    println!("     {}\t", linenum);
+                    linenum = linenum + 1;
+                }
+                else {
+                    println!("");
+                }
             }
             linenum = print_buf(&out_buf, linenum, options);
         }

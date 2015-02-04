@@ -80,3 +80,36 @@ fn test_stdin_number_non_blank() {
 
     assert_eq!(out, "\n     1\ta\n     2\tb\n\n\n     3\tc");
 }
+
+#[test]
+fn test_output_squeeze_blank_numbered() {
+    let po = match Command::new(PROGNAME)
+                                .arg("tests/fixtures/numbered_blank.txt")
+                                .arg("-s")
+                                .arg("-n").output() {
+
+        Ok(p) => p,
+        Err(err) => panic!("{}", err),
+    };
+
+    let out = str::from_utf8(po.output.as_slice()).unwrap();
+    assert_eq!(out,
+               "     1\tapple\n     2\tbat\n     3\tcat\n     4\t\n     5\ttab:\tblah\n     6\t\n     7\tdog\n     8\t\n     9\t\n");
+}
+
+#[test]
+fn test_output_squeeze_blank_unnumbered() {
+    let po = match Command::new(PROGNAME)
+                                .arg("tests/fixtures/numbered_blank.txt")
+                                .arg("-s")
+                                .arg("-v")
+                                .arg("-b").output() {
+
+        Ok(p) => p,
+        Err(err) => panic!("{}", err),
+    };
+
+    let out = str::from_utf8(po.output.as_slice()).unwrap();
+    assert_eq!(out,
+               "     1\tapple\n     2\tbat\n     3\tcat\n\n     4\ttab:\tblah\n\n     5\tdog\n\n     6\t^[\n");
+}
