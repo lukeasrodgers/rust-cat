@@ -2,6 +2,8 @@ extern crate getopts;
 use getopts::{optflag,getopts,OptGroup,usage};
 use std::os;
 
+use std::num::Int;
+use std::char;
 use std::old_io;
 use std::old_io::{IoResult, IoError};
 use std::old_io::BufferedReader;
@@ -191,8 +193,22 @@ fn print_numbered<'a>(s: &String, linenum: u32, options: &getopts::Matches) {
 fn print_numbered_buf<'a>(out_buf: &Vec<u8>, linenum: u32, options: &getopts::Matches) {
     // if options.opt_present("v") || options.opt_present("t") {
         print!("     {}\t", linenum);
+        let mut t = 0u32;
         for b in out_buf.iter() {
-            print_byte(b, options);
+            if t > 0 {
+                t = t + *b as u32;
+                print!("t: {} ", t);
+                print!("{}", char::from_u32(t).unwrap());
+                t = 0;
+            }
+            else {
+                if *b > 160 {
+                    t = *b as u32;
+                }
+                else {
+                    print_byte(b, options);
+                }
+            }
         }
     // }
 }
@@ -210,13 +226,67 @@ fn print_unnumbered(s: &String, options: &getopts::Matches) {
 
 fn print_unnumbered_buf(out_buf: &Vec<u8>, options: &getopts::Matches) {
     // if options.opt_present("v") || options.opt_present("t") {
+        let mut t = 0;
+        let mut buf: Vec<u8> = vec![];
         for b in out_buf.iter() {
-            print_byte(b, options);
+            if t > 0 {
+                buf.push(*b);
+                t = t - 1;
+                if t == 0 {
+                    print_u8_buf(&mut buf, options);
+                }
+            }
+            else {
+                if *b >= 240 {
+                    //4th byte
+                    t = 3;
+                    buf.push(*b);
+                }
+                else if *b >= 224 {
+                    t = 2;
+                    buf.push(*b);
+                }
+                else if *b >= 192 {
+                    t = 1;
+                    buf.push(*b);
+                }
+                else {
+                    print_byte(b, options);
+                }
+            }
         }
     // }
     // else {
         // print!("{}", s);
     // }
+}
+
+fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
+
+    let o = convert_buf_to_codepoint(buf);
+    print!("{}", char::from_u32(o).unwrap());
+    // for b in buf.iter() {
+        // print_byte(b, options);
+    // }
+}
+
+fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
+    let mut s = 0u32;
+    for b in buf.iter() {
+        if *b >= 240 {
+            s = s + (*b as u32 - 240 + 2.pow(19));
+        }
+        else if *b >= 224 {
+            s = s + (*b as u32 - 224 + 2.pow(13));
+        }
+        else if *b >= 192 {
+            s = s + (*b as u32 - 192 + 2.pow(7));
+        }
+        else {
+            s = s + (*b as u32 - 64);
+        }
+    }
+    s
 }
 
 fn is_empty(line: &String) -> bool {
@@ -292,6 +362,7 @@ fn print_tab() {
 #[cfg(test)]
 mod tests {
     use super::is_empty;
+    use super::convert_buf_to_codepoint;
 
     #[test]
     fn assert_is_empty() {
@@ -320,5 +391,11 @@ mod tests {
     fn assert_is_empty_ctrl_char() {
         let s = "".to_string();
         assert!(!is_empty(&s));
+    }
+
+    #[test]
+    fn assert_buf_to_codepoint_24() {
+        let mut b = vec![24u8];
+        assert_eq!(convert_buf_to_codepoint(&mut b), 24u32);
     }
 }
