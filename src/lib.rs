@@ -2,6 +2,7 @@ extern crate getopts;
 use getopts::{optflag,getopts,OptGroup,usage};
 use std::os;
 
+use std::num::FromPrimitive;
 use std::num::Int;
 use std::char;
 use std::old_io;
@@ -272,19 +273,32 @@ fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
 
 fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
     let mut s = 0u32;
+    println!("size: {}", buf.len());
+    println!("s: {}", s);
+    let mut l = buf.len();
     for b in buf.iter() {
-        if *b >= 240 {
+        println!("l: {}", l);
+        if l == 4 {
             s = s + (*b as u32 - 240 + 2.pow(19));
         }
-        else if *b >= 224 {
-            s = s + (*b as u32 - 224 + 2.pow(13));
+        else if l == 3 {
+            // 226 should be 224, no?
+            s = s + (*b as u32 - 226 + 2.pow(13));
         }
-        else if *b >= 192 {
-            s = s + (*b as u32 - 192 + 2.pow(7));
+        else if l == 2 {
+            println!("2b: {}", b);
+            let newval = (*b & 15) << 6;
+            println!("newval: {}", newval);
+            s = s + FromPrimitive::from_u8(newval).unwrap();
+            // s = s + (*b as u32 - 192 + 2.pow(7));
+            println!("2: {}", s);
         }
-        else {
-            s = s + (*b as u32 - 64);
+        else if l == 1 {
+            println!("1b: {}", b);
+            println!("1b anded: {}", *b & 63);
+            s = s + FromPrimitive::from_u8(*b & 63).unwrap();
         }
+        l = l - 1;
     }
     s
 }
@@ -398,4 +412,23 @@ mod tests {
         let mut b = vec![24u8];
         assert_eq!(convert_buf_to_codepoint(&mut b), 24u32);
     }
+
+    #[test]
+    fn assert_buf_to_codepoint_36() {
+        let mut b = vec![164u8];
+        assert_eq!(convert_buf_to_codepoint(&mut b), 36);
+    }
+
+    #[test]
+    fn assert_buf_to_codepoint_162() {
+        let mut b = vec![194u8, 162];
+        assert_eq!(convert_buf_to_codepoint(&mut b), 162);
+    }
+
+    #[test]
+    fn assert_buf_to_codepoint_8364() {
+        let mut b = vec![226u8, 130, 172];
+        assert_eq!(convert_buf_to_codepoint(&mut b), 8364);
+    }
+    
 }
