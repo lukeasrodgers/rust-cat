@@ -1,7 +1,7 @@
 extern crate getopts;
 extern crate "rust-cat" as rustcat;
 
-use getopts::{optopt,optflag,getopts,OptGroup,usage};
+use getopts::{optflag,getopts,OptGroup,usage};
 use std::os;
 
 use rustcat::{print_usage,cat};

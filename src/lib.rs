@@ -1,5 +1,5 @@
 extern crate getopts;
-use getopts::{optopt,optflag,getopts,OptGroup,usage};
+use getopts::{optflag,getopts,OptGroup,usage};
 use std::os;
 
 use std::old_io;
