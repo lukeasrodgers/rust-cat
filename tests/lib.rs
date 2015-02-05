@@ -113,3 +113,15 @@ fn test_output_squeeze_blank_unnumbered() {
     assert_eq!(out,
                "     1\tapple\n     2\tbat\n     3\tcat\n\n     4\ttab:\tblah\n\n     5\tdog\n\n     6\t^[\n");
 }
+
+#[test]
+fn test_output_unicode() {
+    let po = match Command::new(PROGNAME).arg("tests/fixtures/unicode.txt").output() {
+
+        Ok(p) => p,
+        Err(err) => panic!("{}", err),
+    };
+
+    let out = str::from_utf8(po.output.as_slice()).unwrap();
+    assert_eq!(out, "éá-æµ");
+}
