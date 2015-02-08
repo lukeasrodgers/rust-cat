@@ -123,5 +123,5 @@ fn test_output_unicode() {
     };
 
     let out = str::from_utf8(po.output.as_slice()).unwrap();
-    assert_eq!(out, "éá-æµ\n");
+    assert_eq!(out, "éá-æµĦ\n");
 }
