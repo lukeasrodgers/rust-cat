@@ -198,7 +198,7 @@ fn print_numbered_buf<'a>(out_buf: &Vec<u8>, linenum: u32, options: &getopts::Ma
         for b in out_buf.iter() {
             if t > 0 {
                 t = t + *b as u32;
-                print!("t: {} ", t);
+                // print!("t: {} ", t);
                 print!("{}", char::from_u32(t).unwrap());
                 t = 0;
             }
