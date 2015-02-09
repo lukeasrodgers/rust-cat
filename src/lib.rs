@@ -282,7 +282,7 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
     let orig_l = l;
     for b in buf.iter() {
         if l == 4 {
-            s = s + (*b as u32 - 240 + 2.pow(19));
+            s = s + ((*b as u32 | 240) - 240) << 19;
         }
         else if l == 3 {
             s = s + ((*b as u32 | 224) - 224) << 12
