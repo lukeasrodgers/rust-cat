@@ -292,10 +292,10 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
         }
         else if l == 1 {
             if orig_l > 1 {
-                s = s + FromPrimitive::from_u8((*b | 128) - 128).unwrap();
+                s = s + ((*b as u32 | 128) - 128);
             }
             else {
-                s = s + FromPrimitive::from_u8((*b | 192) - 192).unwrap();
+                s = s + ((*b as u32 | 192) - 192);
             }
         }
         l = l - 1;
