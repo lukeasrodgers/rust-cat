@@ -277,27 +277,32 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
     // println!("size: {}", buf.len());
     // println!("s: {}", s);
     let mut l = buf.len();
+    let orig_l = l;
     for b in buf.iter() {
         // println!("l: {}", l);
         if l == 4 {
             s = s + (*b as u32 - 240 + 2.pow(19));
         }
         else if l == 3 {
-            // 226 should be 224, no?
-            s = s + (*b as u32 - 226 + 2.pow(13));
+            s = s + ((*b as u32 | 224) - 224) << 12
         }
         else if l == 2 {
             // println!("2b: {}", b);
-            let newval = (*b & 15) << 6;
+            // let newval = (*b & 15) << 6;
             // println!("newval: {}", newval);
-            s = s + FromPrimitive::from_u8(newval).unwrap();
-            // s = s + (*b as u32 - 192 + 2.pow(7));
+            // s = s + FromPrimitive::from_u8(newval).unwrap();
+            s = s + (((*b as u32 | 192) - 192) << 6);
             // println!("2: {}", s);
         }
         else if l == 1 {
             // println!("1b: {}", b);
             // println!("1b anded: {}", *b & 63);
-            s = s + FromPrimitive::from_u8(*b & 63).unwrap();
+            if orig_l > 1 {
+                s = s + FromPrimitive::from_u8((*b | 128) - 128).unwrap();
+            }
+            else {
+                s = s + FromPrimitive::from_u8((*b | 192) - 192).unwrap();
+            }
         }
         l = l - 1;
     }
@@ -422,14 +427,31 @@ mod tests {
 
     #[test]
     fn assert_buf_to_codepoint_162() {
+        // ¢
+        // C2 A2
+        // 11000010 10100010
+        // 00010100010
         let mut b = vec![194u8, 162];
         assert_eq!(convert_buf_to_codepoint(&mut b), 162);
     }
 
     #[test]
     fn assert_buf_to_codepoint_8364() {
+        // €
+        // E2 82 AC
+        // 11100010 10000010 10101100
+        // 0010000010101100
         let mut b = vec![226u8, 130, 172];
         assert_eq!(convert_buf_to_codepoint(&mut b), 8364);
+    }
+
+    #[test]
+    fn assert_buf_to_codepoint_294() {
+        // c4 a6
+        // 11000100 10100110
+        // 00100100110
+        let mut b = vec![196u8, 166];
+        assert_eq!(convert_buf_to_codepoint(&mut b), 294);
     }
     
 }
