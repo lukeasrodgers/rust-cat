@@ -264,7 +264,6 @@ fn print_unnumbered_buf(out_buf: &Vec<u8>, options: &getopts::Matches) {
 }
 
 fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
-
     let o = convert_buf_to_codepoint(buf);
     print!("{}", char::from_u32(o).unwrap());
     // for b in buf.iter() {
@@ -274,12 +273,9 @@ fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
 
 fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
     let mut s = 0u32;
-    // println!("size: {}", buf.len());
-    // println!("s: {}", s);
     let mut l = buf.len();
     let orig_l = l;
     for b in buf.iter() {
-        // println!("l: {}", l);
         if l == 4 {
             s = s + (*b as u32 - 240 + 2.pow(19));
         }
@@ -287,16 +283,9 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
             s = s + ((*b as u32 | 224) - 224) << 12
         }
         else if l == 2 {
-            // println!("2b: {}", b);
-            // let newval = (*b & 15) << 6;
-            // println!("newval: {}", newval);
-            // s = s + FromPrimitive::from_u8(newval).unwrap();
             s = s + (((*b as u32 | 192) - 192) << 6);
-            // println!("2: {}", s);
         }
         else if l == 1 {
-            // println!("1b: {}", b);
-            // println!("1b anded: {}", *b & 63);
             if orig_l > 1 {
                 s = s + FromPrimitive::from_u8((*b | 128) - 128).unwrap();
             }
