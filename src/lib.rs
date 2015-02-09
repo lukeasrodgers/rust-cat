@@ -447,5 +447,14 @@ mod tests {
         let mut b = vec![196u8, 166];
         assert_eq!(convert_buf_to_codepoint(&mut b), 294);
     }
+
+    #[test]
+    fn assert_buf_to_codepoint_66376() {
+        // F0 90 8D 88
+        // 11110000 10010000 10001101 10001000
+        // 00001 00000011 01001000
+        let mut b = vec![240u8, 144, 141, 136];
+        assert_eq!(convert_buf_to_codepoint(&mut b), 66376);
+    }
     
 }
