@@ -265,10 +265,15 @@ fn print_unnumbered_buf(out_buf: &Vec<u8>, options: &getopts::Matches) {
 
 fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
     let o = convert_buf_to_codepoint(buf);
-    print!("{}", char::from_u32(o).unwrap());
-    // for b in buf.iter() {
-        // print_byte(b, options);
-    // }
+    match char::from_u32(o) {
+        Some(c) => print!("{}", c),
+        None => {
+            for b in buf.iter() {
+                print_byte(b, options);
+            }
+        }
+
+    }
 }
 
 fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
