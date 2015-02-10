@@ -6,10 +6,7 @@ use std::num::FromPrimitive;
 use std::num::Int;
 use std::char;
 use std::old_io;
-use std::old_io::{IoResult, IoError};
-use std::old_io::BufferedReader;
-use std::old_io::File;
-use std::old_io::stdio;
+use std::old_io::{IoResult, IoError, BufferedReader, File, stdio};
 
 pub fn print_usage(program: &str, opts: &[OptGroup]) {
     let brief = format!("Usage: {} [options]", program);
@@ -78,7 +75,6 @@ fn cat_file<'a>(
                 }
             },
             Err(f) => {
-                let mut o = 0u32;
                 if out_buf.len() > 0 {
                     handle_buf(&out_buf, &mut printempty, linenum, options);
                 }
@@ -208,41 +204,36 @@ fn print_unnumbered(s: &String, options: &getopts::Matches) {
 }
 
 fn print_unnumbered_buf(out_buf: &Vec<u8>, options: &getopts::Matches) {
-    // if options.opt_present("v") || options.opt_present("t") {
-        let mut t = 0;
-        let mut buf: Vec<u8> = vec![];
-        for b in out_buf.iter() {
-            if t > 0 {
-                buf.push(*b);
-                t = t - 1;
-                if t == 0 {
-                    print_u8_buf(&mut buf, options);
-                    buf.clear();
-                }
-            }
-            else {
-                if *b >= 240 {
-                    //4th byte
-                    t = 3;
-                    buf.push(*b);
-                }
-                else if *b >= 224 {
-                    t = 2;
-                    buf.push(*b);
-                }
-                else if *b >= 192 {
-                    t = 1;
-                    buf.push(*b);
-                }
-                else {
-                    print_byte(b, options);
-                }
+    let mut t = 0;
+    let mut buf: Vec<u8> = vec![];
+    for b in out_buf.iter() {
+        if t > 0 {
+            buf.push(*b);
+            t = t - 1;
+            if t == 0 {
+                print_u8_buf(&mut buf, options);
+                buf.clear();
             }
         }
-    // }
-    // else {
-        // print!("{}", s);
-    // }
+        else {
+            if *b >= 240 {
+                //4th byte
+                t = 3;
+                buf.push(*b);
+            }
+            else if *b >= 224 {
+                t = 2;
+                buf.push(*b);
+            }
+            else if *b >= 192 {
+                t = 1;
+                buf.push(*b);
+            }
+            else {
+                print_byte(b, options);
+            }
+        }
+    }
 }
 
 fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
