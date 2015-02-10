@@ -310,7 +310,12 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> Result<u32, String> {
         }
         else if l == 1 {
             if orig_l > 1 {
-                s = s + ((*b as u32 | 128) - 128);
+                if *b > 191 {
+                    return Err("Couldn't parse".to_string());
+                }
+                else {
+                    s = s + ((*b as u32 | 128) - 128);
+                }
             }
             else {
                 s = s + ((*b as u32 | 192) - 192);
@@ -473,6 +478,13 @@ mod tests {
         // 00001 00000011 01001000
         let mut b = vec![240u8, 144, 141, 136];
         assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 66376);
+    }
+
+    #[test]
+    #[should_fail]
+    fn assert_buf_to_codepoint_192193_err() {
+        let mut b = vec![192u8, 193];
+        convert_buf_to_codepoint(&mut b).unwrap();
     }
     
 }
