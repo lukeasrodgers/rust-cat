@@ -194,17 +194,17 @@ fn print_numbered<'a>(s: &String, linenum: u32, options: &getopts::Matches) {
 fn print_numbered_buf<'a>(out_buf: &Vec<u8>, linenum: u32, options: &getopts::Matches) {
     // if options.opt_present("v") || options.opt_present("t") {
         print!("     {}\t", linenum);
-        let mut t = 0u32;
+        let mut t = 0u8;
         for b in out_buf.iter() {
             if t > 0 {
-                t = t + *b as u32;
+                t = t + *b;
                 // print!("t: {} ", t);
-                print!("{}", char::from_u32(t).unwrap());
+                print!("{}", t as char);
                 t = 0;
             }
             else {
                 if *b > 160 {
-                    t = *b as u32;
+                    t = *b;
                 }
                 else {
                     print_byte(b, options);
