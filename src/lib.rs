@@ -481,10 +481,9 @@ mod tests {
     }
 
     #[test]
-    #[should_fail]
     fn assert_buf_to_codepoint_192193_err() {
         let mut b = vec![192u8, 193];
-        convert_buf_to_codepoint(&mut b).unwrap();
+        assert!(convert_buf_to_codepoint(&mut b).is_err());
     }
     
 }
