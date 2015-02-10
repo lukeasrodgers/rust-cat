@@ -194,17 +194,17 @@ fn print_numbered<'a>(s: &String, linenum: u32, options: &getopts::Matches) {
 fn print_numbered_buf<'a>(out_buf: &Vec<u8>, linenum: u32, options: &getopts::Matches) {
     // if options.opt_present("v") || options.opt_present("t") {
         print!("     {}\t", linenum);
-        let mut t = 0u32;
+        let mut t = 0u8;
         for b in out_buf.iter() {
             if t > 0 {
-                t = t + *b as u32;
+                t = t + *b;
                 // print!("t: {} ", t);
-                print!("{}", char::from_u32(t).unwrap());
+                print!("{}", t as char);
                 t = 0;
             }
             else {
                 if *b > 160 {
-                    t = *b as u32;
+                    t = *b;
                 }
                 else {
                     print_byte(b, options);
@@ -264,19 +264,27 @@ fn print_unnumbered_buf(out_buf: &Vec<u8>, options: &getopts::Matches) {
 }
 
 fn print_u8_buf(buf: &mut Vec<u8>, options: &getopts::Matches) {
-    let o = convert_buf_to_codepoint(buf);
-    match char::from_u32(o) {
-        Some(c) => print!("{}", c),
-        None => {
+    match convert_buf_to_codepoint(buf) {
+        Ok(codepoint) => {
+            match char::from_u32(codepoint) {
+                Some(c) => print!("{}", c),
+                None => {
+                    for b in buf.iter() {
+                        print_byte(b, options);
+                    }
+                }
+
+            }
+        },
+        Err(_) => {
             for b in buf.iter() {
                 print_byte(b, options);
             }
         }
-
     }
 }
 
-fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
+fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> Result<u32, String> {
     let mut s = 0u32;
     let mut l = buf.len();
     let orig_l = l;
@@ -285,14 +293,29 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
             s = s + ((*b as u32 | 240) - 240) << 19;
         }
         else if l == 3 {
-            s = s + ((*b as u32 | 224) - 224) << 12
+            if orig_l == 4 && *b > 191 {
+                return Err("Couldn't parse".to_string());
+            }
+            else {
+                s = s + ((*b as u32 | 224) - 224) << 12;
+            }
         }
         else if l == 2 {
-            s = s + (((*b as u32 | 192) - 192) << 6);
+            if (orig_l == 4 || orig_l == 3) && *b > 191 {
+                return Err("Couldn't parse".to_string());
+            }
+            else {
+                s = s + (((*b as u32 | 192) - 192) << 6);
+            }
         }
         else if l == 1 {
             if orig_l > 1 {
-                s = s + ((*b as u32 | 128) - 128);
+                if *b > 191 {
+                    return Err("Couldn't parse".to_string());
+                }
+                else {
+                    s = s + ((*b as u32 | 128) - 128);
+                }
             }
             else {
                 s = s + ((*b as u32 | 192) - 192);
@@ -300,7 +323,7 @@ fn convert_buf_to_codepoint(buf: &mut Vec<u8>) -> u32 {
         }
         l = l - 1;
     }
-    s
+    Ok(s)
 }
 
 fn is_empty(line: &String) -> bool {
@@ -410,13 +433,13 @@ mod tests {
     #[test]
     fn assert_buf_to_codepoint_24() {
         let mut b = vec![24u8];
-        assert_eq!(convert_buf_to_codepoint(&mut b), 24u32);
+        assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 24u32);
     }
 
     #[test]
     fn assert_buf_to_codepoint_36() {
         let mut b = vec![164u8];
-        assert_eq!(convert_buf_to_codepoint(&mut b), 36);
+        assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 36);
     }
 
     #[test]
@@ -426,7 +449,7 @@ mod tests {
         // 11000010 10100010
         // 00010100010
         let mut b = vec![194u8, 162];
-        assert_eq!(convert_buf_to_codepoint(&mut b), 162);
+        assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 162);
     }
 
     #[test]
@@ -436,7 +459,7 @@ mod tests {
         // 11100010 10000010 10101100
         // 0010000010101100
         let mut b = vec![226u8, 130, 172];
-        assert_eq!(convert_buf_to_codepoint(&mut b), 8364);
+        assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 8364);
     }
 
     #[test]
@@ -445,7 +468,7 @@ mod tests {
         // 11000100 10100110
         // 00100100110
         let mut b = vec![196u8, 166];
-        assert_eq!(convert_buf_to_codepoint(&mut b), 294);
+        assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 294);
     }
 
     #[test]
@@ -454,7 +477,14 @@ mod tests {
         // 11110000 10010000 10001101 10001000
         // 00001 00000011 01001000
         let mut b = vec![240u8, 144, 141, 136];
-        assert_eq!(convert_buf_to_codepoint(&mut b), 66376);
+        assert_eq!(convert_buf_to_codepoint(&mut b).unwrap(), 66376);
+    }
+
+    #[test]
+    #[should_fail]
+    fn assert_buf_to_codepoint_192193_err() {
+        let mut b = vec![192u8, 193];
+        convert_buf_to_codepoint(&mut b).unwrap();
     }
     
 }
