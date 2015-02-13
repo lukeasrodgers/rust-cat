@@ -1,9 +1,11 @@
 # rust-cat
 
-Implementation of BSD `cat` in rust as a learning exercise.
+Implementation of a bastardized combination of BSD and GNU `cat` in rust, as a learning exercise.
 
-At this point, mostly works, but buggy, no control over buffering, lots of dead code, bad
-formatting, bad organization, etc.
+For a real implemenation, see https://github.com/uutils/coreutils.
+
+At this point, mostly works, but buggy, control over buffering is untested and possibly broken, lots of duplicate code, formatting and line numbering will
+break for very large files, code is badly organized, etc.
 
 ## Licence
 
